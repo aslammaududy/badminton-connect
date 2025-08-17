@@ -55,16 +55,10 @@ class Find extends Component
     {
         $q = PartnerRequest::query()->with('requester')->where('status','open');
         if ($this->centerLat !== null && $this->centerLng !== null) {
-            $q->select('partner_requests.*')
-              ->selectRaw('(
-                    6371 * acos(
-                        cos(radians(?)) * cos(radians(latitude)) * cos(radians(longitude) - radians(?)) +
-                        sin(radians(?)) * sin(radians(latitude))
-                    )
-                ) as distance_km', [$this->centerLat, $this->centerLng, $this->centerLat])
-              ->orderBy('distance_km');
+            $q->withDistanceFrom($this->centerLat, $this->centerLng)
+              ->nearestTo($this->centerLat, $this->centerLng);
             if ($this->radiusKm !== null) {
-                $q->having('distance_km', '<=', (float) $this->radiusKm);
+                $q->withinRadius($this->centerLat, $this->centerLng, (float) $this->radiusKm * 1000);
             }
         } else {
             $q->latest();

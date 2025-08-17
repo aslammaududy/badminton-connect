@@ -33,17 +33,11 @@ class Index extends Component
         $q = Court::query();
 
         if ($this->centerLat !== null && $this->centerLng !== null) {
-            $q->select('*')
-              ->selectRaw('(
-                    6371 * acos(
-                        cos(radians(?)) * cos(radians(latitude)) * cos(radians(longitude) - radians(?)) +
-                        sin(radians(?)) * sin(radians(latitude))
-                    )
-                ) as distance_km', [$this->centerLat, $this->centerLng, $this->centerLat])
-              ->orderBy('distance_km');
+            $q->withDistanceFrom($this->centerLat, $this->centerLng)
+              ->nearestTo($this->centerLat, $this->centerLng);
 
             if ($this->radiusKm !== null) {
-                $q->having('distance_km', '<=', (float) $this->radiusKm);
+                $q->withinRadius($this->centerLat, $this->centerLng, (float) $this->radiusKm * 1000);
             }
         } else {
             $q->latest();

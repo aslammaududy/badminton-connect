@@ -23,17 +23,11 @@ class PartnerRequestController extends Controller
         $radius = request('radius'); // in km
 
         if ($lat !== null && $lng !== null) {
-            $q->select('partner_requests.*')
-              ->selectRaw('(
-                    6371 * acos(
-                        cos(radians(?)) * cos(radians(latitude)) * cos(radians(longitude) - radians(?)) +
-                        sin(radians(?)) * sin(radians(latitude))
-                    )
-                ) as distance_km', [$lat, $lng, $lat])
-              ->orderBy('distance_km');
+            $q->withDistanceFrom((float) $lat, (float) $lng)
+              ->nearestTo((float) $lat, (float) $lng);
 
             if ($radius !== null) {
-                $q->having('distance_km', '<=', (float) $radius);
+                $q->withinRadius((float) $lat, (float) $lng, (float) $radius * 1000);
             }
         } else {
             $q->latest();
