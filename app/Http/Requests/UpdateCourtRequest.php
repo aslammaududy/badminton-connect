@@ -24,8 +24,12 @@ class UpdateCourtRequest extends FormRequest
         return [
             'name' => ['sometimes','string','max:255'],
             'location' => ['sometimes','nullable','string','max:255'],
+            'address' => ['sometimes','nullable','string','max:255'],
             'description' => ['sometimes','nullable','string'],
             'hourly_rate' => ['sometimes','nullable','numeric','between:0,999999.99'],
+            'latitude' => ['sometimes','nullable','numeric','between:-90,90'],
+            'longitude' => ['sometimes','nullable','numeric','between:-180,180'],
+            'place_id' => ['sometimes','nullable','string','max:255'],
         ];
     }
 }

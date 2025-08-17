@@ -24,8 +24,12 @@ class StoreCourtRequest extends FormRequest
         return [
             'name' => ['required','string','max:255'],
             'location' => ['nullable','string','max:255'],
+            'address' => ['sometimes','nullable','string','max:255'],
             'description' => ['nullable','string'],
             'hourly_rate' => ['nullable','numeric','between:0,999999.99'],
+            'latitude' => ['sometimes','nullable','numeric','between:-90,90'],
+            'longitude' => ['sometimes','nullable','numeric','between:-180,180'],
+            'place_id' => ['sometimes','nullable','string','max:255'],
         ];
     }
 }

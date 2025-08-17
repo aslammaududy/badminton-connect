@@ -26,6 +26,8 @@ class StorePartnerRequestRequest extends FormRequest
             'responder_id' => ['nullable','exists:users,id'],
             'status' => ['sometimes','in:open,accepted,closed'],
             'message' => ['nullable','string'],
+            'latitude' => ['sometimes','nullable','numeric','between:-90,90'],
+            'longitude' => ['sometimes','nullable','numeric','between:-180,180'],
         ];
     }
 }

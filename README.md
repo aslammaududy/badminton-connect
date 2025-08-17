@@ -1,61 +1,97 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Badminton Connect
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Aplikasi komunitas bulutangkis untuk menemukan partner bermain, memesan lapangan, dan mengelola turnamen/pertandingan. Dibangun dengan Laravel 12, Livewire 3, dan Sanctum.
 
-## About Laravel
+## Fitur
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+- Courts: kelola dan lihat daftar lapangan (nama, lokasi, tarif per jam).
+- Map & radius: peta Google di halaman Courts dengan marker dan filter radius.
+- Bookings: buat pemesanan lapangan dengan waktu mulai/akhir dan harga opsional.
+- Tournaments: kelola turnamen dengan tanggal mulai/akhir, status, dan peserta.
+- Matches: jadwalkan pertandingan terkait penyelenggara, turnamen, dan lapangan.
+- Partner Finder: posting permintaan mencari partner dan lihat daftar permintaan terbuka.
+- Cari Partner di peta: tampilkan request terbuka di peta + filter radius.
+- Auth: login/register dan token API via Laravel Sanctum.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Stack
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+- Backend: PHP 8.2, Laravel 12, Sanctum, Breeze, Livewire 3 + Volt.
+- Frontend: Blade, Tailwind CSS, Vite.
+- Database: SQLite (default `.env`), migrasi terkelola.
 
-## Learning Laravel
+## Menjalankan Secara Lokal
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+1. Instal dependensi PHP dan JS:
+   - `composer install`
+   - `npm install`
+2. Salin file env dan generate key (jika belum):
+   - `cp .env.example .env`
+   - `php artisan key:generate`
+3. Gunakan SQLite (sudah disetel di `.env`) dan buat file DB:
+   - `mkdir -p database && touch database/database.sqlite`
+4. Jalankan migrasi:
+   - `php artisan migrate`
+5. Set kunci Google Maps (untuk fitur peta + autocomplete):
+   - Tambahkan `GOOGLE_MAPS_API_KEY=...` ke `.env`
+6. Jalankan aplikasi (mode dev terpadu):
+   - `composer run dev`
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+Aplikasi web tersedia di `http://localhost:8000` (default artisan serve), Vite di `http://localhost:5173`.
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## Maps & Geolocation
 
-## Laravel Sponsors
+- API yang perlu diaktifkan di Google Cloud (APIs & Services → Library):
+  - Maps JavaScript API, Places API (wajib), Geocoding API (opsional untuk reverse/forward geocoding server-side).
+- Buat API key (Credentials → Create credentials → API key) dan batasi:
+  - Application restrictions: Websites/HTTP referrers (`http://localhost/*`, `http://127.0.0.1/*`, `http://localhost:8000/*`, `http://localhost:5173/*`, lalu domain produksi).
+  - API restrictions: hanya Maps JavaScript API dan Places API (tambahkan Geocoding jika dipakai).
+- Fitur terkait:
+  - `/courts`: peta + “Gunakan lokasiku”, input radius, pencarian tempat (Places Autocomplete).
+  - `/courts/create`: form buat lapangan dengan Places Autocomplete yang mengisi `address`, `latitude`, `longitude`, `place_id` otomatis.
+  - `/partners/find`: peta request partner + “Gunakan lokasiku”, radius, dan Autocomplete.
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+## API Cepat (v1)
 
-### Premium Partners
+Base path: `/api/v1`
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+- Register:
+  - `curl -X POST http://localhost:8000/api/v1/register \
+    -H 'Content-Type: application/json' \
+    -d '{"name":"Alice","email":"alice@example.com","password":"secret123","password_confirmation":"secret123","device_name":"cli"}'`
+- Login:
+  - `curl -X POST http://localhost:8000/api/v1/login \
+    -H 'Content-Type: application/json' \
+    -d '{"email":"alice@example.com","password":"secret123","device_name":"cli"}'`
+  - Respon berisi `token` Bearer.
+- Contoh akses endpoint (Courts):
+  - `curl http://localhost:8000/api/v1/courts`
+  - Buat court: `curl -X POST http://localhost:8000/api/v1/courts -H 'Authorization: Bearer <TOKEN>' -H 'Content-Type: application/json' -d '{"name":"Court A","location":"Jakarta"}'`
 
-## Contributing
+- Filter jarak (km) untuk courts/partner-requests:
+  - `GET /api/v1/courts?lat=-6.2&lng=106.82&radius=10`
+  - `GET /api/v1/partner-requests?lat=-6.2&lng=106.82&radius=15`
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+Endpoint lain: `bookings`, `tournaments`, `matches`, `partner-requests`. Lihat definisi rute di `routes/api.php`.
 
-## Code of Conduct
+## Rute Web
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+- `/courts` — daftar lapangan
+- `/courts/create` — buat lapangan (login diperlukan) dengan Places Autocomplete
+- `/bookings/create` — form pemesanan (login diperlukan)
+- `/tournaments` — daftar turnamen
+- `/partners/find` — cari partner bermain
+- `/dashboard`, `/profile` — area pengguna (Breeze)
 
-## Security Vulnerabilities
+## Postman
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+- Koleksi tersedia di `docs/postman/badminton-connect.postman_collection.json` (sudah termasuk login yang otomatis menyimpan token ke variable koleksi).
 
-## License
+## Troubleshooting
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+- Peta blank: pastikan `GOOGLE_MAPS_API_KEY` valid, API yang diperlukan sudah di-enable, dan browser mengizinkan geolocation.
+- Autocomplete tidak muncul: pastikan script memuat `libraries=places` dan key punya akses ke Places API.
+- Error rate/kuota: batasi panggilan dan aktifkan kuota/alerts di Google Cloud.
+
+## Lisensi
+
+Proyek ini menggunakan lisensi MIT.

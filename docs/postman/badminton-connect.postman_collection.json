@@ -1,0 +1,254 @@
+{
+  "info": {
+    "_postman_id": "c3e6e0f5-67c7-4a7b-9b1f-5b0d2e3a1bcd",
+    "name": "Badminton Connect API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://localhost:8000" },
+    { "key": "token", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/api/v1/register" },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Alice\",\n  \"email\": \"alice@example.com\",\n  \"password\": \"secret123\",\n  \"password_confirmation\": \"secret123\",\n  \"device_name\": \"postman\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200 || pm.response.code === 201) {",
+                  "  try {",
+                  "    const json = pm.response.json();",
+                  "    if (json.token) { pm.collectionVariables.set('token', json.token); }",
+                  "  } catch (e) {}",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/api/v1/login" },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"alice@example.com\",\n  \"password\": \"secret123\",\n  \"device_name\": \"postman\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Me",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/api/v1/me" }
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/api/v1/logout" }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Courts",
+      "item": [
+        { "name": "List Courts", "request": { "method": "GET", "url": { "raw": "{{base_url}}/api/v1/courts" } } },
+        {
+          "name": "Create Court",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{base_url}}/api/v1/courts" },
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Court A\",\n  \"location\": \"Jakarta\",\n  \"description\": \"Indoor\",\n  \"hourly_rate\": 50000\n}" }
+          }
+        },
+        { "name": "Show Court", "request": { "method": "GET", "url": { "raw": "{{base_url}}/api/v1/courts/1" } } },
+        {
+          "name": "Update Court",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{base_url}}/api/v1/courts/1" },
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Court A+\"\n}" }
+          }
+        },
+        {
+          "name": "Delete Court",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/api/v1/courts/1" }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Bookings",
+      "item": [
+        { "name": "List Bookings", "request": { "method": "GET", "url": { "raw": "{{base_url}}/api/v1/bookings" } } },
+        {
+          "name": "Create Booking",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{base_url}}/api/v1/bookings" },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"user_id\": 1,\n  \"court_id\": 1,\n  \"start_time\": \"2025-08-16T10:00:00\",\n  \"end_time\": \"2025-08-16T12:00:00\",\n  \"price\": 100000\n}"
+            }
+          }
+        },
+        { "name": "Show Booking", "request": { "method": "GET", "url": { "raw": "{{base_url}}/api/v1/bookings/1" } } },
+        {
+          "name": "Update Booking",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{base_url}}/api/v1/bookings/1" },
+            "body": { "mode": "raw", "raw": "{\n  \"status\": \"confirmed\"\n}" }
+          }
+        },
+        { "name": "Delete Booking", "request": { "method": "DELETE", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "{{base_url}}/api/v1/bookings/1" } } }
+      ]
+    },
+    {
+      "name": "Tournaments",
+      "item": [
+        { "name": "List Tournaments", "request": { "method": "GET", "url": { "raw": "{{base_url}}/api/v1/tournaments" } } },
+        {
+          "name": "Create Tournament",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{base_url}}/api/v1/tournaments" },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Open 2025\",\n  \"location\": \"Jakarta\",\n  \"start_date\": \"2025-09-01\",\n  \"end_date\": \"2025-09-03\"\n}"
+            }
+          }
+        },
+        { "name": "Show Tournament", "request": { "method": "GET", "url": { "raw": "{{base_url}}/api/v1/tournaments/1" } } },
+        {
+          "name": "Update Tournament",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{base_url}}/api/v1/tournaments/1" },
+            "body": { "mode": "raw", "raw": "{\n  \"status\": \"ongoing\"\n}" }
+          }
+        },
+        { "name": "Delete Tournament", "request": { "method": "DELETE", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "{{base_url}}/api/v1/tournaments/1" } } }
+      ]
+    },
+    {
+      "name": "Matches",
+      "item": [
+        { "name": "List Matches", "request": { "method": "GET", "url": { "raw": "{{base_url}}/api/v1/matches" } } },
+        {
+          "name": "Create Match",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{base_url}}/api/v1/matches" },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"organizer_id\": 1,\n  \"tournament_id\": null,\n  \"court_id\": 1,\n  \"start_time\": \"2025-08-16T14:00:00\",\n  \"status\": \"scheduled\"\n}"
+            }
+          }
+        },
+        { "name": "Show Match", "request": { "method": "GET", "url": { "raw": "{{base_url}}/api/v1/matches/1" } } },
+        {
+          "name": "Update Match",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{base_url}}/api/v1/matches/1" },
+            "body": { "mode": "raw", "raw": "{\n  \"status\": \"completed\"\n}" }
+          }
+        },
+        { "name": "Delete Match", "request": { "method": "DELETE", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "{{base_url}}/api/v1/matches/1" } } }
+      ]
+    },
+    {
+      "name": "Partner Requests",
+      "item": [
+        { "name": "List Partner Requests", "request": { "method": "GET", "url": { "raw": "{{base_url}}/api/v1/partner-requests" } } },
+        {
+          "name": "Create Partner Request",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{base_url}}/api/v1/partner-requests" },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"requester_id\": 1,\n  \"message\": \"Looking for a doubles partner\"\n}"
+            }
+          }
+        },
+        { "name": "Show Partner Request", "request": { "method": "GET", "url": { "raw": "{{base_url}}/api/v1/partner-requests/1" } } },
+        {
+          "name": "Update Partner Request",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{base_url}}/api/v1/partner-requests/1" },
+            "body": { "mode": "raw", "raw": "{\n  \"status\": \"accepted\"\n}" }
+          }
+        },
+        { "name": "Delete Partner Request", "request": { "method": "DELETE", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": { "raw": "{{base_url}}/api/v1/partner-requests/1" } } }
+      ]
+    }
+  ]
+}
+

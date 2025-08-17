@@ -16,7 +16,30 @@ class CourtController extends Controller
      */
     public function index()
     {
-        $courts = Court::query()->latest()->paginate(15);
+        $q = Court::query();
+
+        $lat = request('lat');
+        $lng = request('lng');
+        $radius = request('radius'); // in km
+
+        if ($lat !== null && $lng !== null) {
+            $q->select('*')
+              ->selectRaw('(
+                    6371 * acos(
+                        cos(radians(?)) * cos(radians(latitude)) * cos(radians(longitude) - radians(?)) +
+                        sin(radians(?)) * sin(radians(latitude))
+                    )
+                ) as distance_km', [$lat, $lng, $lat])
+              ->orderBy('distance_km');
+
+            if ($radius !== null) {
+                $q->having('distance_km', '<=', (float) $radius);
+            }
+        } else {
+            $q->latest();
+        }
+
+        $courts = $q->paginate(15);
         return CourtResource::collection($courts);
     }
 

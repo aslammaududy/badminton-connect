@@ -16,7 +16,30 @@ class PartnerRequestController extends Controller
      */
     public function index()
     {
-        $requests = PartnerRequest::query()->with(['requester','responder'])->latest()->paginate(15);
+        $q = PartnerRequest::query()->with(['requester','responder']);
+
+        $lat = request('lat');
+        $lng = request('lng');
+        $radius = request('radius'); // in km
+
+        if ($lat !== null && $lng !== null) {
+            $q->select('partner_requests.*')
+              ->selectRaw('(
+                    6371 * acos(
+                        cos(radians(?)) * cos(radians(latitude)) * cos(radians(longitude) - radians(?)) +
+                        sin(radians(?)) * sin(radians(latitude))
+                    )
+                ) as distance_km', [$lat, $lng, $lat])
+              ->orderBy('distance_km');
+
+            if ($radius !== null) {
+                $q->having('distance_km', '<=', (float) $radius);
+            }
+        } else {
+            $q->latest();
+        }
+
+        $requests = $q->paginate(15);
         return PartnerRequestResource::collection($requests);
     }
 

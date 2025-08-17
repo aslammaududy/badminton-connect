@@ -20,6 +20,9 @@ class PartnerRequestResource extends JsonResource
             'responder_id' => $this->responder_id,
             'status' => $this->status,
             'message' => $this->message,
+            'latitude' => $this->latitude,
+            'longitude' => $this->longitude,
+            'distance_km' => $this->when(isset($this->distance_km), round((float) $this->distance_km, 3)),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

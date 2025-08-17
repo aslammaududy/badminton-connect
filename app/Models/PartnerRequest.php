@@ -10,7 +10,7 @@ class PartnerRequest extends Model
     use HasFactory;
 
     protected $fillable = [
-        'requester_id', 'responder_id', 'status', 'message',
+        'requester_id', 'responder_id', 'status', 'message', 'latitude', 'longitude',
     ];
 
     public function requester()
@@ -23,4 +23,3 @@ class PartnerRequest extends Model
         return $this->belongsTo(User::class, 'responder_id');
     }
 }
-

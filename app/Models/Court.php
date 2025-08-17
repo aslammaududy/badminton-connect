@@ -10,7 +10,7 @@ class Court extends Model
     use HasFactory;
 
     protected $fillable = [
-        'name', 'location', 'description', 'hourly_rate',
+        'name', 'location', 'address', 'latitude', 'longitude', 'place_id', 'description', 'hourly_rate',
     ];
 
     public function bookings()
