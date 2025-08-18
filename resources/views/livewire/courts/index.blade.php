@@ -73,7 +73,18 @@
             data.forEach(c => {
                 if (!c.latitude || !c.longitude) return;
                 const m = new google.maps.Marker({ position: {lat: parseFloat(c.latitude), lng: parseFloat(c.longitude)}, map, title: c.name });
-                const info = new google.maps.InfoWindow({ content: `<div><strong>${c.name}</strong><br>${c.location ?? ''}<br>${c.address ?? ''}<br>${c.hourly_rate ? 'Rate: ' + c.hourly_rate : ''}</div>` });
+                const bookingUrl = `{{ route('bookings.create') }}?court_id=${c.id}&from_map=1`;
+                const infoHtml = `
+                    <div>
+                        <strong>${c.name}</strong><br>
+                        ${c.location ?? ''}<br>
+                        ${c.address ?? ''}<br>
+                        ${c.hourly_rate ? 'Rate: ' + c.hourly_rate : ''}<br>
+                        <div class="mt-2">
+                            <a href="${bookingUrl}" class="text-blue-600 underline">Book this court</a>
+                        </div>
+                    </div>`;
+                const info = new google.maps.InfoWindow({ content: infoHtml });
                 m.addListener('click', () => info.open({anchor: m, map}));
                 markers.push(m);
             });

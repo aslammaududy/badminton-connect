@@ -41,6 +41,18 @@
             <input type="number" step="0.01" wire:model.live="price" class="border rounded p-2 w-full" />
             @error('price') <div class="text-red-600 text-sm">{{ $message }}</div> @enderror
         </div>
+        <div>
+            <label class="block text-sm font-medium">Desired size (2–8)</label>
+            <input type="number" min="2" max="8" wire:model.live="desired_size" class="border rounded p-2 w-full" />
+            <div class="text-xs text-gray-600 mt-1">Host dihitung 1 kursi terisi otomatis.</div>
+            @error('desired_size') <div class="text-red-600 text-sm">{{ $message }}</div> @enderror
+        </div>
+        @if($from_map)
+            <div class="flex items-center gap-2">
+                <input type="checkbox" class="rounded" checked disabled />
+                <span class="text-sm">Open to join (diaktifkan karena booking dari peta)</span>
+            </div>
+        @endif
         <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded" wire:loading.attr="disabled">Save</button>
     </form>
 </div>

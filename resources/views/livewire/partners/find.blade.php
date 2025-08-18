@@ -69,38 +69,80 @@
         @endforelse
     </div>
 
-    <script id="partner-requests-data" type="application/json">@json($openRequests)</script>
-    <script>
-        let pMap, pMarkers=[];
+    <h2 class="text-xl font-semibold mt-6 mb-2">Open Sessions (from bookings)</h2>
+    <div class="space-y-2">
+        @forelse ($openSessions as $s)
+            <div class="border p-3 rounded">
+                <div class="font-semibold">{{ $s['court']['name'] ?? 'Court' }} — Host: {{ $s['host'] ?? '-' }}</div>
+                <div class="text-sm">{{ $s['start_time'] }} - {{ $s['end_time'] }}</div>
+                <div class="text-sm">Remaining: {{ $s['remaining'] }} / {{ $s['desired_size'] }}</div>
+            </div>
+        @empty
+            <div class="text-gray-600">No open sessions yet.</div>
+        @endforelse
+    </div>
 
-        function getPartnerRequestsData() {
-            try { return JSON.parse(document.getElementById('partner-requests-data').textContent || '[]'); } catch (e) { return []; }
+    <script id="partner-requests-data" type="application/json">@json($openRequests)</script>
+    <script id="sessions-data" type="application/json">@json($openSessions)</script>
+    <script>
+        let pMap, pRequestMarkers=[], pSessionMarkers=[];
+
+        function getJson(elId, fallback = []) {
+            try { return JSON.parse(document.getElementById(elId)?.textContent || '[]'); } catch (e) { return fallback; }
         }
+
         function initPartnersMap() {
-            const data = getPartnerRequestsData();
-            const defaultCenter = { lat: data[0]?.latitude ? parseFloat(data[0].latitude) : -6.200000, lng: data[0]?.longitude ? parseFloat(data[0].longitude) : 106.816666 };
+            const reqs = getJson('partner-requests-data');
+            const sess = getJson('sessions-data');
+            const defaultCenter = {
+                lat: reqs[0]?.latitude ? parseFloat(reqs[0].latitude) : (sess[0]?.court?.latitude ? parseFloat(sess[0].court.latitude) : -6.200000),
+                lng: reqs[0]?.longitude ? parseFloat(reqs[0].longitude) : (sess[0]?.court?.longitude ? parseFloat(sess[0].court.longitude) : 106.816666)
+            };
             pMap = new google.maps.Map(document.getElementById('partners-map'), { center: defaultCenter, zoom: 12 });
 
             initPartnerAutocomplete();
-            renderPartnerMarkers();
+            renderPartnerRequestMarkers();
+            renderSessionMarkers();
 
-            const dataEl = document.getElementById('partner-requests-data');
-            if (dataEl) {
-                const obs = new MutationObserver(() => { renderPartnerMarkers(); initPartnerAutocomplete(); });
-                obs.observe(dataEl, { childList: true, characterData: true, subtree: true });
-            }
+            ['partner-requests-data','sessions-data'].forEach(id => {
+                const el = document.getElementById(id);
+                if (!el) return;
+                const obs = new MutationObserver(() => { renderPartnerRequestMarkers(); renderSessionMarkers(); });
+                obs.observe(el, { childList: true, characterData: true, subtree: true });
+            });
         }
 
-        function renderPartnerMarkers() {
-            pMarkers.forEach(m => m.setMap(null));
-            pMarkers = [];
-            const data = getPartnerRequestsData();
+        function renderPartnerRequestMarkers() {
+            pRequestMarkers.forEach(m => m.setMap(null));
+            pRequestMarkers = [];
+            const data = getJson('partner-requests-data');
             data.forEach(r => {
                 if (!r.latitude || !r.longitude) return;
-                const m = new google.maps.Marker({ position: {lat: parseFloat(r.latitude), lng: parseFloat(r.longitude)}, map: pMap, title: r.requester?.name || 'Request' });
+                const m = new google.maps.Marker({ position: {lat: parseFloat(r.latitude), lng: parseFloat(r.longitude)}, map: pMap, title: r.requester?.name || 'Request', label: 'R' });
                 const info = new google.maps.InfoWindow({ content: `<div><strong>${r.requester?.name ?? 'Request'}</strong><br>${r.message ?? ''}</div>` });
                 m.addListener('click', () => info.open({anchor: m, map: pMap}));
-                pMarkers.push(m);
+                pRequestMarkers.push(m);
+            });
+        }
+
+        function renderSessionMarkers() {
+            pSessionMarkers.forEach(m => m.setMap(null));
+            pSessionMarkers = [];
+            const sess = getJson('sessions-data');
+            sess.forEach(s => {
+                const c = s.court || {};
+                if (!c.latitude || !c.longitude) return;
+                const m = new google.maps.Marker({ position: {lat: parseFloat(c.latitude), lng: parseFloat(c.longitude)}, map: pMap, title: c.name || 'Session', label: 'S' });
+                const infoHtml = `
+                    <div>
+                        <strong>${c.name ?? 'Court'}</strong><br>
+                        Host: ${s.host ?? '-'}<br>
+                        ${s.start_time ?? ''} - ${s.end_time ?? ''}<br>
+                        Remaining: ${s.remaining} / ${s.desired_size}
+                    </div>`;
+                const info = new google.maps.InfoWindow({ content: infoHtml });
+                m.addListener('click', () => info.open({anchor: m, map: pMap}));
+                pSessionMarkers.push(m);
             });
         }
 

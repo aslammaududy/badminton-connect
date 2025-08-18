@@ -4,6 +4,7 @@ namespace App\Livewire\Partners;
 
 use App\Models\PartnerRequest;
 use App\Models\User;
+use App\Models\Booking;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
 
@@ -64,7 +65,51 @@ class Find extends Component
             $q->latest();
         }
         $openRequests = $q->limit(50)->get();
+
+        // Open sessions: bookings created from map flow and open to join
+        $sessions = Booking::query()
+            ->with(['court:id,name,latitude,longitude,address', 'user:id,name'])
+            ->withCount(['acceptedParticipants as accepted_count'])
+            ->where('open_to_join', true)
+            ->when($this->centerLat !== null && $this->centerLng !== null, function ($b) {
+                $lat = (float) $this->centerLat; $lng = (float) $this->centerLng;
+                $radius = $this->radiusKm !== null ? ((float) $this->radiusKm * 1000) : null;
+                $b->whereHas('court', function ($q) use ($lat, $lng, $radius) {
+                    $q->withDistanceFrom($lat, $lng)->nearestTo($lat, $lng);
+                    if ($radius !== null) {
+                        $q->withinRadius($lat, $lng, $radius);
+                    }
+                });
+            })
+            ->latest('start_time')
+            ->limit(100)
+            ->get()
+            ->map(function ($s) {
+                $accepted = (int) ($s->accepted_count ?? 0);
+                $desired = (int) ($s->desired_size ?? 8);
+                $remaining = max($desired - (1 + $accepted), 0);
+                return [
+                    'id' => $s->id,
+                    'host' => $s->user?->name,
+                    'start_time' => optional($s->start_time)->toDateTimeString(),
+                    'end_time' => optional($s->end_time)->toDateTimeString(),
+                    'desired_size' => $desired,
+                    'accepted' => $accepted,
+                    'remaining' => $remaining,
+                    'court' => [
+                        'id' => $s->court?->id,
+                        'name' => $s->court?->name,
+                        'latitude' => $s->court?->latitude,
+                        'longitude' => $s->court?->longitude,
+                        'address' => $s->court?->address,
+                    ],
+                ];
+            });
         $users = User::query()->limit(50)->get(['id','name']);
-        return view('livewire.partners.find', compact('openRequests','users'));
+        return view('livewire.partners.find', [
+            'openRequests' => $openRequests,
+            'users' => $users,
+            'openSessions' => $sessions,
+        ]);
     }
 }

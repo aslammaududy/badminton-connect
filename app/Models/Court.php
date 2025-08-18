@@ -12,7 +12,7 @@ class Court extends Model
     use HasFactory;
 
     protected $fillable = [
-        'name', 'location', 'address', 'latitude', 'longitude', 'place_id', 'description', 'hourly_rate',
+        'name', 'location', 'address', 'latitude', 'longitude', 'place_id', 'description', 'hourly_rate', 'total_courts', 'owner_user_id',
     ];
 
     public function bookings()
@@ -23,6 +23,11 @@ class Court extends Model
     public function matches()
     {
         return $this->hasMany(\App\Models\GameMatch::class);
+    }
+
+    public function owner()
+    {
+        return $this->belongsTo(User::class, 'owner_user_id');
     }
 
     protected static function booted(): void

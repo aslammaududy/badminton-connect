@@ -10,7 +10,7 @@ class Booking extends Model
     use HasFactory;
 
     protected $fillable = [
-        'user_id', 'court_id', 'start_time', 'end_time', 'status', 'price',
+        'user_id', 'court_id', 'start_time', 'end_time', 'status', 'price', 'desired_size', 'open_to_join',
     ];
 
     protected function casts(): array
@@ -31,5 +31,14 @@ class Booking extends Model
     {
         return $this->belongsTo(Court::class);
     }
-}
 
+    public function participants()
+    {
+        return $this->hasMany(BookingParticipant::class);
+    }
+
+    public function acceptedParticipants()
+    {
+        return $this->participants()->where('status', 'accepted');
+    }
+}
